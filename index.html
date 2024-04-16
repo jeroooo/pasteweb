@@ -32,28 +32,42 @@
         });
 
         function submitPaste(text) {
-            var pastes = JSON.parse(localStorage.getItem('pastes')) || [];
-            if (pastes.length >= 10) {
-                pastes.shift(); // Remove the oldest paste if there are already 10
-            }
-            pastes.push({ text: text });
-            localStorage.setItem('pastes', JSON.stringify(pastes));
-            updatePasteList(pastes);
+            var apiKey = 'R4_PEeNGxax8TC_UQ6RvDSqRyfx_eQ_N';
+            var postData = {
+                api_dev_key: apiKey,
+                api_option: 'paste',
+                api_paste_code: text
+            };
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://pastebin.com/api/api_post.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var pasteUrl = xhr.responseText.trim();
+                        // Append the paste URL to the paste list
+                        appendToPasteList(pasteUrl);
+                    } else {
+                        console.error('Failed to submit paste:', xhr.status, xhr.statusText);
+                    }
+                }
+            };
+            var postDataStr = Object.keys(postData).map(key => key + '=' + encodeURIComponent(postData[key])).join('&');
+            xhr.send(postDataStr);
         }
 
-        function updatePasteList(pastes) {
+        function appendToPasteList(pasteUrl) {
             var pasteList = document.getElementById('pasteList');
-            pasteList.innerHTML = '';
-            pastes.forEach(function (paste) {
-                var li = document.createElement('li');
-                li.textContent = paste.text;
-                pasteList.appendChild(li);
-            });
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = pasteUrl;
+            a.textContent = pasteUrl;
+            a.target = '_blank'; // Open link in new tab
+            li.appendChild(a);
+            pasteList.appendChild(li);
         }
 
-        // Load initial pastes on page load
-        var initialPastes = JSON.parse(localStorage.getItem('pastes')) || [];
-        updatePasteList(initialPastes);
+        // Load initial pastes on page load (not implemented for Pastebin)
     </script>
 </body>
 
